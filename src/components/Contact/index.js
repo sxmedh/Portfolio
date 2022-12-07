@@ -18,23 +18,16 @@ const Contact = () => {
   const sendEmail = (e) => {
     e.preventDefault();
 
-    emailjs
-      .sendForm(
-        "service_oiahjpf",
-        "template_wgb8qi4",
-        form.current,
-        "c7VxxqVyXj3S8sJV_"
-      )
-      .then(
-        (result) => {
-          console.log(result.text);
-          e.target.reset();
-          alert("success!");
-        },
-        (error) => {
-          console.log(error.text);
-        }
-      );
+    emailjs.sendForm().then(
+      (result) => {
+        console.log(result.text);
+        e.target.reset();
+        alert("success!");
+      },
+      (error) => {
+        console.log(error.text);
+      }
+    );
   };
 
   return (
