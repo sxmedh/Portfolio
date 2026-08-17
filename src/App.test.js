@@ -7,14 +7,14 @@ test('renders the name and the one-line facts', () => {
   /* the S of "Sumedh" is the logo image, so the text node reads "umedh Gole" */
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/umedh Gole/)
   expect(screen.getByAltText('S')).toBeInTheDocument()
-  expect(screen.getByText(/Member of Technical Staff/)).toBeInTheDocument()
+  expect(screen.getByText(/Software Developer at/)).toBeInTheDocument()
   expect(screen.getByRole('heading', { name: /contact/i })).toBeInTheDocument()
 })
 
 test('every contact row links out', () => {
   render(<App />)
 
-  expect(screen.getByRole('link', { name: '@sxmedh' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: 'sxmedh' })).toHaveAttribute(
     'href',
     'https://github.com/sxmedh'
   )
