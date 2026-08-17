@@ -1,25 +1,328 @@
-html {
-  font-size: 62.5%;
+@font-face {
+  font-family: 'Coolvetica';
+  src: url('./assets/fonts/CoolveticaRg-Regular.woff2') format('woff2'),
+    url('./assets/fonts/CoolveticaRg-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --navy: #022c43;
+  --gold: #ffd700;
+  --text: #fff;
+  --muted: #9fb3c0;
+  /* everything except the Coolvetica name is Roboto Mono */
+  --sans: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --mono: var(--sans);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font: 300 11px/1.4 'Helvetica Neue', sans-serif;
-  color: #444;
+  background: var(--navy);
+  color: var(--text);
+  font: 400 clamp(1rem, 0.96rem + 0.2vw, 1.0625rem) / 1.6 var(--sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #022c43;
+  overflow-wrap: break-word;
+}
+
+main {
+  position: relative;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: clamp(3rem, 11vh, 5.5rem) clamp(1.25rem, 5vw, 1.5rem) 4rem;
+}
+
+/* ---------------- name ---------------- */
+
+h1 {
+  position: relative;
+  margin: 0;
+  font-family: 'Coolvetica', var(--sans);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 8vw, 3.5rem);
+  line-height: 1.05;
+}
+
+h1 img {
+  width: 0.6em;
+  height: auto;
+  vertical-align: baseline;
+}
+
+/* ---------------- pacman name reveal ---------------- */
+
+/* shrink-wraps the letters so the pacman's 0→100% run spans exactly the name */
+.eat {
+  position: relative;
+  display: inline-block;
   overflow: hidden;
-  display: block;
 }
 
-.dashboard {
-  margin-top: 200px;
-  margin-left: 200px;
+.dotcell {
+  display: inline-block;
 }
 
-@media screen and (max-width: 1200px) {
-  body {
-    overflow: visible;
+/* the pac-dots, spread evenly across the name's width rather than
+   centered per letter — letter widths vary, arcade dots don't */
+.dotcell::before {
+  content: '';
+  position: absolute;
+  left: calc((var(--i, 0) + 0.5) * 100% / var(--cells, 11));
+  top: 50%;
+  width: 0.14em;
+  height: 0.14em;
+  border-radius: 50%;
+  background: var(--gold);
+  transform: translate(-50%, -50%);
+  animation: dot-eat 0.05s linear both;
+  animation-delay: calc(0.4s + var(--i, 0) * 0.12s);
+}
+
+.eat-in,
+.text-animate-hover {
+  display: inline-block;
+  min-width: 10px;
+}
+
+/* the letter itself, hidden until its dot is eaten */
+.eat-in {
+  opacity: 0;
+  animation: letter-pop 0.25s ease-out both;
+  animation-delay: calc(0.4s + var(--i, 0) * 0.12s);
+}
+
+.text-animate-hover:hover {
+  color: var(--gold);
+  animation: rubber-band 1s;
+}
+
+/* the pacman, built from two rotating half-wedges, crossing the name once */
+.pac {
+  position: absolute;
+  top: 50%;
+  width: 0;
+  height: 0;
+  margin-top: -0.45em;
+  animation: pac-cross 1.6s linear 0.1s both;
+}
+
+.pac::before,
+.pac::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0.45em solid var(--gold);
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+.pac::before {
+  animation: pac-up 0.35s infinite;
+}
+
+.pac::after {
+  animation: pac-down 0.35s infinite;
+}
+
+@keyframes pac-cross {
+  from {
+    left: -1.2em;
+  }
+  to {
+    /* park fully past the clip edge so no antialiased sliver survives */
+    left: calc(100% + 0.3em);
+  }
+}
+
+@keyframes dot-eat {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes letter-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------- one-liners ---------------- */
+
+.facts {
+  margin: 2.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.facts li {
+  position: relative;
+  padding-left: 1.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.facts li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+}
+
+hr {
+  height: 0;
+  margin: 2.5rem 0 1.75rem;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* ---------------- contact rows ---------------- */
+
+.contact {
+  margin: 0;
+}
+
+.contact div {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.contact dt {
+  color: var(--muted);
+  line-height: 0;
+}
+
+.contact dt svg {
+  width: 1.2em;
+  height: 1.2em;
+  fill: currentColor;
+}
+
+.contact div:hover dt {
+  color: var(--gold);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.contact dd {
+  margin: 0;
+  min-width: 0;
+}
+
+a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 215, 0, 0.55);
+  text-underline-offset: 3px;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+a:hover {
+  color: var(--gold);
+  text-decoration-color: var(--gold);
+}
+
+.resume {
+  display: inline-block;
+  margin-top: 1.25rem;
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.resume:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+@keyframes pac-up {
+  0%,
+  100% {
+    transform: rotate(270deg);
+  }
+  50% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pac-down {
+  0%,
+  100% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes rubber-band {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* no chase — the name is simply there */
+  .dotcell::before,
+  .pac {
+    display: none;
+  }
+
+  .eat-in {
+    animation: none;
+    opacity: 1;
   }
 }
