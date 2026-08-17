@@ -25,7 +25,7 @@ const ICONS = {
 };
 
 const CONTACT = [
-  ["GitHub", GITHUB, "@sxmedh"],
+  ["GitHub", GITHUB, "sxmedh"],
   ["LinkedIn", LINKEDIN, "sumedh-gole"],
   ["Email", `mailto:${EMAIL}`, EMAIL],
   ["Phone", `tel:${PHONE.replace(/\s/g, "")}`, PHONE],
@@ -70,11 +70,12 @@ const App = () => {
 
       <ul className="facts">
         <li>
-          Member of Technical Staff <Link href={ONIX}>@Datametica – Onix</Link>
+          Software Developer at <Link href={ONIX}>Datametica | Onix</Link>
         </li>
         <li>Spring, Java, Scala, Spark, LangChain, Agentic AI</li>
         <li>
-          CS <Link href="https://www.unipune.ac.in/">@Pune University</Link>
+          Computer Science -{" "}
+          <Link href="https://www.unipune.ac.in/">Pune University</Link>
         </li>
         <li>Pune, India</li>
       </ul>
