@@ -326,3 +326,17 @@ a:hover {
     opacity: 1;
   }
 }
+
+/* touch phones only (iPhone 15 is 393px): finger-sized tap targets on the
+   contact links and resume, with the row gap folded into the padding */
+@media (max-width: 500px) and (pointer: coarse) {
+  .contact div {
+    margin-bottom: 0;
+  }
+
+  .contact dd a,
+  .resume {
+    display: inline-block;
+    padding: 11px 0;
+  }
+}

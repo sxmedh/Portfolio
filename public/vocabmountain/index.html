@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vocab Mountain · Quiz</title>
+<link rel="icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Vocab Mountain">
 <style>
 :root{--fg:#0a0a0a;--muted:#737373;--line:#e5e5e5;--soft:#f5f5f5;--good:#16a34a;--good-bg:#f0fdf4;--good-line:#bbf7d0;--bad:#dc2626;--bad-bg:#fef2f2;--bad-line:#fecaca}
 *{box-sizing:border-box}
@@ -48,6 +51,20 @@ button.btn:hover{background:var(--soft)}
 .verdict.good{color:var(--good)}
 .verdict.bad{color:var(--bad)}
 .note{margin:0 0 4px;color:var(--muted)}
+/* touch phones only (iPhone 15 is 393px): 16px input stops iOS zoom-on-focus, ~44px tap targets */
+@media (max-width:500px) and (pointer:coarse){
+  body{min-height:100dvh}
+  main{padding:24px 12px}
+  h1{font-size:26px}
+  .card{padding:20px 16px}
+  .groups{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .groups label{min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px}
+  .groups label:has(:checked){border-color:var(--fg);background:var(--soft)}
+  .types label{min-height:44px;margin:0}
+  .num{font-size:16px}
+  .btn{padding:13px 12px;font-size:15px}
+  .row{padding:13px 12px}
+}
 </style>
 </head>
 <body>

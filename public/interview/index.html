@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LCTube · Learn Java</title>
+<link rel="icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="LCTube">
 <style>
 :root{--bg:#fff;--fg:#0f0f0f;--muted:#606060;--chip:#f2f2f2;--on:#0f0f0f;--on-fg:#fff;--line:#d3d3d3;--red:#f00}
 @media (prefers-color-scheme:dark){:root{--bg:#0f0f0f;--fg:#f1f1f1;--muted:#aaa;--chip:#272727;--on:#f1f1f1;--on-fg:#0f0f0f;--line:#303030}}
@@ -51,6 +54,14 @@ aside p{margin:0 8px 8px}
 @media (max-width:1100px){.watch{flex-direction:column}aside{width:auto}}
 @media (max-width:900px){nav{display:none}main{padding:0 16px 48px}}
 @media (max-width:500px){.logo span{display:none}}
+/* touch phones only (iPhone 15 is 393px): 16px inputs stop iOS zoom-on-focus, ~44px tap targets */
+@media (max-width:500px) and (pointer:coarse){
+  header input{font-size:16px}
+  .chips a{padding:10px 14px}
+  .btn{padding:12px 16px}
+  .player .row .row{width:100%}
+  .player .row .row .btn{flex:1;text-align:center}
+}
 </style>
 </head>
 <body>
@@ -111,7 +122,7 @@ function watch(v) {
   const list = VIDEOS.filter(x => x.topic === v.topic);
   $('#view').innerHTML = `<div class="watch">
     <div class="player">
-      <iframe src="https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0" title="${esc(v.title)}"
+      <iframe src="https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&playsinline=1" title="${esc(v.title)}"
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       <h1>${esc(v.title)}</h1>
       <div class="row">
