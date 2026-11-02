@@ -249,11 +249,6 @@ a:hover {
   text-decoration-color: var(--gold);
 }
 
-/* reads as plain text until hovered (a:hover still turns it gold) */
-.sneaky {
-  text-decoration: none;
-}
-
 .resume {
   display: inline-block;
   margin-top: 1.25rem;

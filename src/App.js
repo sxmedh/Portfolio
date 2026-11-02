@@ -8,8 +8,6 @@ const LINKEDIN = "https://www.linkedin.com/in/sumedh-gole-495866221/";
 const ONIX = "https://www.linkedin.com/company/onixcloud/";
 /* drop the PDF at public/resume.pdf and this link picks it up */
 const RESUME = `${process.env.PUBLIC_URL}/resume.pdf`;
-/* the "Java" in the skills line quietly links to the video site in public/interview */
-const INTERVIEW = `${process.env.PUBLIC_URL}/interview/`;
 
 const NAME = "umedh Gole";
 /* pacman reaches letter i at EAT_BASE + i * EAT_STEP seconds — keep in sync with the CSS */
@@ -74,10 +72,7 @@ const App = () => {
         <li>
           Software Developer at <Link href={ONIX}>Datametica | Onix</Link>
         </li>
-        <li>
-          Spring, <a className="sneaky" href={INTERVIEW}>Java</a>, Scala, Spark,
-          LangChain, Agentic AI
-        </li>
+        <li>Spring, Java, Scala, Spark, LangChain, Agentic AI</li>
         <li>
           Computer Science -{" "}
           <Link href="https://www.unipune.ac.in/">Pune University</Link>
