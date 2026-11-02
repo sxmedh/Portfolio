@@ -28,6 +28,12 @@ test('every contact row links out', () => {
   )
 })
 
+test('"Java" quietly links to the interview site', () => {
+  render(<App />)
+
+  expect(screen.getByRole('link', { name: 'Java' })).toHaveAttribute('href', '/interview/')
+})
+
 test('offers the resume as a download', () => {
   render(<App />)
 
