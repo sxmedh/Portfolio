@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocab Mountain · Quiz</title>
+<style>
+:root{--fg:#0a0a0a;--muted:#737373;--line:#e5e5e5;--soft:#f5f5f5;--good:#16a34a;--good-bg:#f0fdf4;--good-line:#bbf7d0;--bad:#dc2626;--bad-bg:#fef2f2;--bad-line:#fecaca}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:#fff;color:var(--fg);font:15px/1.5 Ubuntu,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:10px;height:56px;padding:0 24px;border-bottom:1px solid var(--line);font-weight:700}
+header svg{width:26px;height:26px}
+main{flex:1;width:100%;max-width:672px;margin:0 auto;padding:40px 16px}
+footer{padding:16px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:12px}
+footer a{color:inherit}
+h1{margin:0 0 24px;text-align:center;font-size:30px}
+.card{max-width:640px;margin:0 auto;border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card.narrow{max-width:576px}
+.card h2{margin:0 0 4px;font-size:15px}
+.center{text-align:center}
+.title{display:block;margin:24px 0 10px;font-weight:700}
+.groups{display:flex;flex-wrap:wrap;gap:8px 14px}
+label{display:flex;align-items:center;gap:7px;cursor:pointer}
+input[type=checkbox],input[type=radio]{width:15px;height:15px;margin:0;accent-color:var(--fg)}
+.num{width:96px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font:inherit}
+.hint{margin:6px 0 0;color:var(--muted);font-size:12px}
+.types label{margin:7px 0}
+.btn{display:block;width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--fg);font:inherit;font-size:14px;font-weight:500;text-align:center;cursor:pointer}
+button.btn:hover{background:var(--soft)}
+.btn.primary{margin-top:28px;background:var(--fg);border-color:var(--fg);color:#fff}
+.btn.primary:hover{background:#262626}
+.btn:disabled{background:#8a8a8a;border-color:#8a8a8a;cursor:not-allowed}
+.btn + .btn{margin-top:10px}
+.prompt{margin:20px 0;font-size:20px}
+.options{display:grid;gap:10px}
+.review .opt{color:var(--muted);cursor:default}
+.opt.right{background:var(--good-bg);border-color:var(--good-bg)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad-line);color:var(--bad)}
+.score{margin:20px 0;font-size:24px;font-weight:700}
+.rows{display:grid;gap:8px;text-align:left}
+.row{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:1px solid;border-radius:6px;font:inherit;text-align:left;cursor:pointer}
+.row.good{background:var(--good-bg);border-color:var(--good-line)}
+.row.bad{background:var(--bad-bg);border-color:var(--bad-line)}
+.dot{width:18px;height:18px;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.6),transparent 40%) var(--c)}
+.good .dot{--c:#22c55e}
+.bad .dot{--c:#ef4444}
+.verdict{margin:20px 0 4px;font-weight:700}
+.verdict.good{color:var(--good)}
+.verdict.bad{color:var(--bad)}
+.note{margin:0 0 4px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="2" y="5" width="3" height="15" rx=".6"/><rect x="6" y="3" width="3.5" height="17" rx=".6"/><rect x="10.5" y="5" width="3" height="15" rx=".6"/><rect x="15.5" y="4" width="3" height="16" rx=".6" transform="rotate(-14 17 12)"/></svg>
+  Vocab Mountain
+</header>
+<main><p class="center hint">Loading words…</p></main>
+<footer>Vocabulary data sourced from <a href="https://www.gregmat.com/" target="_blank" rel="noreferrer">GregMAT</a>.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+const pick = a => a[Math.random() * a.length | 0];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const TYPES = ['Synonym Matching', 'Pick the Correct Definition', 'Pick the Correct Word for a Definition'];
+
+let WORDS = [], view = 'setup', quiz = [], answers = [], at = 0;
+const setup = {groups: new Set(), count: '', type: 0};
+
+// One question for word w: the prompt, the right answer, and 3 distractors taken from other random words.
+function question(w, type) {
+  const d = type === 0 ? pick(w.defs.filter(x => x.syns.length)) : pick(w.defs);
+  const [prompt, answer, fill] =
+    type === 0 ? [w.word, pick(d.syns), x => pick(pick(x.defs).syns)] :
+    type === 1 ? [w.word, d.def, x => pick(x.defs).def] :
+                 [d.def, w.word, x => x.word];
+  const own = new Set([w.word, ...w.defs.flatMap(x => [x.def, ...x.syns])]);  // never offer another right answer
+  const options = new Set([answer]);
+  while (options.size < 4) {
+    const x = pick(WORDS), o = x !== w && fill(x);
+    if (o && !own.has(o)) options.add(o);
+  }
+  return {w, d, type, prompt, answer, options: shuffle([...options])};
+}
+
+function start() {
+  const pool = WORDS.filter(w => setup.groups.has(w.group) && (setup.type || w.defs.some(x => x.syns.length)));
+  const n = Math.min(Math.max(+setup.count || 10, 1), pool.length);
+  quiz = shuffle(pool).slice(0, n).map(w => question(w, setup.type));
+  answers = [];
+  show('quiz');
+}
+
+const views = {
+  setup() {
+    const groups = [...new Set(WORDS.map(w => w.group))];
+    const max = WORDS.filter(w => setup.groups.has(w.group)).length;
+    return `<h1>Quiz Setup</h1><div class="card">
+      <h2>Customize Your Quiz</h2>
+      <span class="title">Select Groups</span>
+      <div class="groups">${groups.map(g => `<label><input type="checkbox" data-group="${g}"${setup.groups.has(g) ? ' checked' : ''}>Group ${g}</label>`).join('')}</div>
+      <label class="title" for="count">Number of Questions</label>
+      <input id="count" class="num" inputmode="numeric" placeholder="10" value="${setup.count}">
+      ${max ? `<p class="hint">Max: ${max}</p>` : ''}
+      <span class="title">Quiz Type</span>
+      <div class="types" role="radiogroup">${TYPES.map((t, i) => `<label><input type="radio" name="type" value="${i}"${setup.type === i ? ' checked' : ''}>${t}</label>`).join('')}</div>
+      <button class="btn primary" data-act="start"${max ? '' : ' disabled'}>Start Quiz</button>
+    </div>`;
+  },
+  quiz() {
+    const q = quiz[answers.length];
+    return `<div class="card narrow">
+      <h2>Question ${answers.length + 1} of ${quiz.length}</h2>
+      <div class="prompt">${esc(q.prompt)}</div>
+      <div class="options">${q.options.map((o, i) => `<button class="btn" data-act="answer" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+    </div>`;
+  },
+  results() {
+    const score = quiz.filter((q, i) => answers[i] === q.answer).length;
+    return `<div class="card narrow center">
+      <h2>Quiz Complete!</h2>
+      <div class="score">Score: ${score} / ${quiz.length}</div>
+      <span class="title" style="text-align:left">Questions:</span>
+      <div class="rows">${quiz.map((q, i) => {
+        const ok = answers[i] === q.answer;
+        return `<button class="row ${ok ? 'good' : 'bad'}" data-act="review" data-i="${i}"><span class="dot" role="img" aria-label="${ok ? 'correct' : 'wrong'}"></span>Q${i + 1}: ${esc(q.w.word)}</button>`;
+      }).join('')}</div>
+      <button class="btn primary" data-act="new">New Quiz</button>
+    </div>`;
+  },
+  review() {
+    const q = quiz[at], mine = answers[at];
+    return `<div class="card narrow center review">
+      <h2>Review: Question ${at + 1}</h2>
+      <div class="prompt">${esc(q.prompt)}</div>
+      <div class="options">${q.options.map(o => `<div class="btn opt${o === q.answer ? ' right' : o === mine ? ' wrong' : ''}">${esc(o)}</div>`).join('')}</div>
+      ${mine === q.answer
+        ? '<p class="verdict good">You answered correctly!</p>'
+        : `<p class="verdict bad">Your answer: ${esc(mine)}<br>Correct answer: ${esc(q.answer)}</p>`}
+      <p class="note">${esc(q.type === 0 ? q.d.def : q.d.example)}</p>
+      <button class="btn primary" data-act="results">Back to Quiz Review</button>
+      <button class="btn" data-act="new">New Quiz</button>
+      <p class="hint">Use ←/→ to navigate, Esc to return</p>
+    </div>`;
+  },
+};
+
+function show(v) {
+  view = v;
+  $('main').innerHTML = views[v]();
+}
+
+$('main').addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.group) {
+    t.checked ? setup.groups.add(+t.dataset.group) : setup.groups.delete(+t.dataset.group);
+    show('setup');
+  }
+  if (t.name === 'type') setup.type = +t.value;
+});
+$('main').addEventListener('input', e => {
+  if (e.target.id === 'count') e.target.value = setup.count = e.target.value.replace(/\D/g, '');
+});
+$('main').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const i = +b.dataset.i;
+  ({
+    start,
+    answer() { answers.push(quiz[answers.length].options[i]); show(answers.length === quiz.length ? 'results' : 'quiz'); },
+    review() { at = i; show('review'); },
+    results() { show('results'); },
+    new() { show('setup'); },
+  })[b.dataset.act]();
+});
+addEventListener('keydown', e => {
+  if (view !== 'review') return;
+  if (e.key === 'ArrowLeft' && at > 0) at--;
+  else if (e.key === 'ArrowRight' && at < quiz.length - 1) at++;
+  else if (e.key === 'Escape') return show('results');
+  else return;
+  show('review');
+});
+
+// [word, group, [[definition, synonyms, example], ...]]
+fetch('vocab.json').then(r => r.json()).then(rows => {
+  WORDS = rows.map(([word, group, defs]) => ({word, group, defs: defs.map(([def, syns, example]) => ({def, syns, example}))}));
+  show('setup');
+}).catch(() => { $('main').innerHTML = '<p class="center hint">Could not load the word list.</p>'; });
+</script>
+</body>
+</html>
