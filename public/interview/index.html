@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCTube · Learn Java</title>
+<style>
+:root{--bg:#fff;--fg:#0f0f0f;--muted:#606060;--chip:#f2f2f2;--on:#0f0f0f;--on-fg:#fff;--line:#d3d3d3;--red:#f00}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0f0f;--fg:#f1f1f1;--muted:#aaa;--chip:#272727;--on:#f1f1f1;--on-fg:#0f0f0f;--line:#303030}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 Roboto,Arial,sans-serif}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;background:var(--bg)}
+.logo{display:flex;align-items:center;gap:4px;font-size:19px;font-weight:700;letter-spacing:-.6px;white-space:nowrap}
+.logo i{display:grid;place-items:center;width:28px;height:20px;border-radius:6px;background:var(--red);color:#fff;font-size:10px;font-style:normal}
+header input{flex:1;min-width:0;max-width:600px;margin:0 auto;padding:9px 16px;border:1px solid var(--line);border-radius:40px;background:var(--bg);color:var(--fg);font:inherit}
+.layout{display:flex}
+nav{flex-shrink:0;width:250px;height:calc(100vh - 56px);position:sticky;top:56px;overflow:auto;padding:8px 12px}
+nav a{display:block;padding:9px 12px;border-radius:10px}
+nav a:hover{background:var(--chip)}
+nav a.on{background:var(--chip);font-weight:600}
+nav a.course{margin-top:4px;font-weight:600}
+nav a.topic{padding:7px 12px 7px 24px;font-size:13px}
+nav a small{float:right;color:var(--muted);font-weight:400}
+main{flex:1;min-width:0;padding:0 24px 48px}
+.chips{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:12px 0;position:sticky;top:56px;z-index:2;background:var(--bg)}
+.chips[hidden]{display:none}
+.chips a{padding:6px 12px;border-radius:8px;background:var(--chip);font-weight:500;white-space:nowrap}
+.chips a.on{background:var(--on);color:var(--on-fg)}
+h1.course{margin:28px 0 0;font-size:24px}
+h2{margin:20px 0 12px;font-size:18px}
+h2 small{margin-left:10px;color:var(--muted);font-size:14px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px 16px}
+.thumb{position:relative;display:block;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--chip)}
+.thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.thumb.done::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--red)}
+.thumb span{position:absolute;right:6px;bottom:8px;padding:1px 4px;border-radius:4px;background:rgba(0,0,0,.8);color:#fff;font-size:12px;font-weight:500}
+.card h3{margin:10px 0 4px;font-size:15px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{color:var(--muted);font-size:13px}
+.watch{display:flex;gap:24px;padding-top:24px}
+.player{flex:1;min-width:0}
+.player iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000}
+.player h1{margin:12px 0 8px;font-size:20px}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.btn{padding:8px 16px;border-radius:18px;background:var(--chip);font-weight:500}
+.btn.primary{background:var(--on);color:var(--on-fg)}
+button.btn{border:0;font:inherit;color:inherit;cursor:pointer}
+aside{width:400px;flex-shrink:0;border:1px solid var(--line);border-radius:12px;padding:12px 8px;align-self:flex-start}
+aside h3{margin:0 8px 4px;font-size:16px}
+aside p{margin:0 8px 8px}
+.mini{display:flex;gap:8px;padding:6px 8px;border-radius:8px}
+.mini:hover,.mini.on{background:var(--chip)}
+.mini .thumb{width:160px;flex-shrink:0;border-radius:8px}
+.mini b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;font-weight:600}
+@media (max-width:1100px){.watch{flex-direction:column}aside{width:auto}}
+@media (max-width:900px){nav{display:none}main{padding:0 16px 48px}}
+@media (max-width:500px){.logo span{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="#"><i>▶</i><span>LCTube</span></a>
+  <input id="q" type="search" placeholder="Search videos" aria-label="Search">
+</header>
+<div class="layout">
+  <nav id="nav"></nav>
+  <main>
+    <div class="chips" id="chips"></div>
+    <div id="view"></div>
+  </main>
+</div>
+<script src="data.js"></script>
+<script>
+const VIDEOS = COURSES.flatMap(([course, topics]) => topics.flatMap(([topic, list]) =>
+  list.map(([id, title, channel, len, views, age]) => ({id, title, channel, len, views, age, topic, course}))));
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+const hash = p => '#' + new URLSearchParams(p);
+
+let done;
+try { done = new Set(JSON.parse(localStorage.lctubeWatched || '[]')); } catch { done = new Set(); }
+function toggle(id, on = !done.has(id)) {
+  on ? done.add(id) : done.delete(id);
+  try { localStorage.lctubeWatched = JSON.stringify([...done]); } catch {}
+}
+const stats = topic => { const vids = VIDEOS.filter(v => v.topic === topic); return [vids.filter(v => done.has(v.id)).length, vids.length]; };
+const thumb = v => `<span class="thumb${done.has(v.id) ? ' done' : ''}"><img loading="lazy" alt="" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg"><span>${v.len}</span></span>`;
+const byline = v => `${esc(v.channel)}<br>${v.views} views · ${v.age}`;
+const meta = v => byline(v) + (done.has(v.id) ? ' · ✓ Watched' : '');
+const card = v => `<a class="card" href="${hash({v: v.id})}">${thumb(v)}<h3>${esc(v.title)}</h3><div class="meta">${meta(v)}</div></a>`;
+const mini = (v, on) => `<a class="mini${on ? ' on' : ''}" href="${hash({v: v.id})}">${thumb(v)}<div><b>${esc(v.title)}</b><div class="meta">${meta(v)}</div></div></a>`;
+
+$('#chips').innerHTML = `<a data-c="" href="#">All</a>` +
+  COURSES.map(([c]) => `<a data-c="${esc(c)}" href="${hash({c})}">${esc(c)}</a>`).join('');
+
+// Sidebar: every course, with the active course's topics expanded.
+function nav(c, t) {
+  $('#nav').innerHTML = `<a class="${c ? '' : 'on'}" href="#">Home</a>` + COURSES.map(([course, topics]) =>
+    `<a class="course${course === c && !t ? ' on' : ''}" href="${hash({c: course})}">${esc(course)}</a>` +
+    (course === c ? topics.map(([name], i) =>
+      `<a class="topic${name === t ? ' on' : ''}" href="${hash({t: name})}">${i + 1}. ${esc(name)}<small>${stats(name).join('/')}</small></a>`).join('') : '')
+  ).join('');
+}
+
+function home(c, t) {
+  const words = $('#q').value.toLowerCase().split(/\s+/).filter(Boolean);
+  const match = v => words.every(w => `${v.title} ${v.channel} ${v.topic} ${v.course}`.toLowerCase().includes(w));
+  $('#view').innerHTML = COURSES.map(([course, topics]) => {
+    if (c && c !== course) return '';
+    const sections = topics.map(([name], i) => {
+      const vids = VIDEOS.filter(v => v.topic === name && (!t || t === name) && match(v));
+      return vids.length ? `<section><h2>${i + 1}. ${esc(name)}<small>${stats(name).join('/')} watched</small></h2><div class="grid">${vids.map(card).join('')}</div></section>` : '';
+    }).join('');
+    return sections && `<h1 class="course">${esc(course)}</h1>${sections}`;
+  }).join('') || '<p class="meta">No videos match your search.</p>';
+}
+
+function watch(v) {
+  const after = VIDEOS[VIDEOS.indexOf(v) + 1];
+  const next = after && after.course === v.course ? after : null;
+  $('#view').innerHTML = `<div class="watch">
+    <div class="player">
+      <iframe src="https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0" title="${esc(v.title)}"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <h1>${esc(v.title)}</h1>
+      <div class="row">
+        <div class="meta">${byline(v)}</div>
+        <div class="row">
+          <button class="btn" id="mark"></button>
+          <a class="btn" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${v.id}">Open on YouTube ↗</a>
+          ${next ? `<a class="btn primary" id="next" href="${hash({v: next.id})}">Next: ${esc(next.topic === v.topic ? 'video' : next.topic)} ▶</a>` : ''}
+        </div>
+      </div>
+    </div>
+    <aside></aside>
+  </div>`;
+  // ponytail: refresh around the player, never re-render it (that would restart the video)
+  const update = () => {
+    const list = VIDEOS.filter(x => x.topic === v.topic);
+    $('#mark').textContent = done.has(v.id) ? '✓ Watched' : 'Mark as watched';
+    $('aside').innerHTML = `<h3>${esc(v.topic)}</h3><p class="meta">${esc(v.course)} · Video ${list.indexOf(v) + 1}/${list.length} · ${stats(v.topic)[0]} watched</p>` +
+      list.map(x => mini(x, x === v)).join('');
+    nav(v.course, v.topic);
+  };
+  $('#mark').onclick = () => { toggle(v.id); update(); };
+  if (next) $('#next').onclick = () => toggle(v.id, true);
+  update();
+}
+
+function render() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const v = VIDEOS.find(x => x.id === p.get('v'));
+  const t = p.get('t') || '';
+  const c = v ? v.course : p.get('c') || VIDEOS.find(x => x.topic === t)?.course || '';
+  document.querySelectorAll('#chips a').forEach(a => a.classList.toggle('on', a.dataset.c === c));
+  $('#chips').hidden = !!v;
+  v ? watch(v) : (home(c, t), nav(c, t));
+  window.scrollTo(0, 0);
+}
+
+$('#q').addEventListener('input', () => location.hash.includes('v=') ? location.hash = '' : render());
+addEventListener('hashchange', render);
+render();
+</script>
+</body>
+</html>
