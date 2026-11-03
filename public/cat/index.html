@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAT Prep · Quiz</title>
+<link rel="icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="CAT Prep">
+<style>
+:root{--bg:#fff;--fg:#0a0a0a;--muted:#6b6b6b;--line:#e5e5e5;--soft:#f5f5f5;--accent:#4338ca;--good:#15803d;--good-bg:#f0fdf4;--good-line:#bbf7d0;--bad:#b91c1c;--bad-bg:#fef2f2;--bad-line:#fecaca}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0f10;--fg:#f2f2f2;--muted:#a1a1a1;--line:#2e2e30;--soft:#1c1c1e;--accent:#a5b4fc;--good:#4ade80;--good-bg:#0d2617;--good-line:#166534;--bad:#f87171;--bad-bg:#2a1111;--bad-line:#7f1d1d}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;height:56px;padding:0 20px;border-bottom:1px solid var(--line)}
+header a{display:flex;align-items:center;gap:10px;color:inherit;font-weight:700;text-decoration:none}
+.mark{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:800;letter-spacing:.02em}
+main{flex:1;width:100%;max-width:680px;margin:0 auto;padding:28px 16px 40px}
+footer{padding:14px 16px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:13px}
+h1{margin:0 0 6px;font-size:28px;text-align:center}
+.sub{margin:0 0 24px;text-align:center;color:var(--muted)}
+.card{border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card + .card{margin-top:14px}
+.title{display:block;margin:22px 0 10px;font-weight:700}
+.card > .title:first-child{margin-top:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg .btn[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:22px 0 0}
+.tools .title{margin:0 auto 0 0}
+.grp{padding:12px 0;border-bottom:1px solid var(--line)}
+.gname{display:flex;align-items:center;gap:10px;min-height:32px;font-weight:600;cursor:pointer}
+.gname small{margin-left:auto;color:var(--muted);font-weight:400}
+.sets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.set{position:relative;display:grid;place-items:center;min-width:40px;height:36px;padding:0 8px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-variant-numeric:tabular-nums;cursor:pointer}
+.set input{position:absolute;opacity:0;pointer-events:none}
+.set:has(:checked){border-color:var(--accent);background:var(--accent);color:var(--bg)}
+.set:has(:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+.num,.tita input{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+.num{width:110px}
+.hint{margin:6px 0 0;color:var(--muted);font-size:13px}
+.btn{display:block;width:100%;min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit;font-size:15px;font-weight:600;text-align:center;cursor:pointer}
+@media (hover:hover){button.btn:not(:disabled):hover{background:var(--soft)}}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+@media (hover:hover){button.btn.primary:not(:disabled):hover{background:var(--accent);opacity:.88}}
+.btn:disabled{cursor:default}
+.go{margin-top:26px}
+.btn + .btn{margin-top:10px}
+.tools .btn{width:auto;min-height:34px;margin:0;padding:4px 12px;font-size:13px}
+.qhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:14px}
+.tag{padding:2px 10px;border-radius:999px;background:var(--soft);font-size:12px;font-weight:700}
+.passage{max-height:42vh;overflow:auto;margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--soft);font-size:15px}
+.passage h3{margin:0 0 8px;font-size:15px}
+.passage p{margin:0 0 10px}
+.insert{margin:14px 0 0;padding:10px 14px;border-left:3px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;font-weight:600}
+.blank{display:inline-grid;place-items:center;min-width:24px;height:22px;margin:0 2px;padding:0 6px;border-radius:6px;background:var(--accent);color:var(--bg);font-size:12px;vertical-align:1px}
+.sentences{margin:14px 0 0;padding:0;list-style:none}
+.sentences li{display:flex;gap:10px;margin:0 0 10px}
+.sentences b{display:grid;place-items:center;flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--soft);font-size:13px}
+.prompt{margin:16px 0 4px;font-size:20px;font-weight:700}
+.ask{margin:0 0 14px;color:var(--muted);font-size:14px}
+.options{display:grid;gap:10px}
+.opt{text-align:left;font-weight:500}
+.opt.right{background:var(--good-bg);border-color:var(--good-line)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad-line);color:var(--bad)}
+.tita{display:flex;gap:10px}
+.tita input{flex:1;min-width:0;font-size:18px;letter-spacing:.2em}
+.tita .btn{width:auto}
+.feedback{margin-top:16px;padding:14px;border:1px solid;border-radius:8px}
+.feedback.good{background:var(--good-bg);border-color:var(--good-line)}
+.feedback.bad{background:var(--bad-bg);border-color:var(--bad-line)}
+.feedback strong{display:block;margin-bottom:4px}
+.feedback.good strong{color:var(--good)}
+.feedback.bad strong{color:var(--bad)}
+.feedback p{margin:4px 0 0}
+.feedback + .btn{margin-top:14px}
+.score{margin:6px 0 18px;font-size:30px;font-weight:800;text-align:center}
+.rows{display:grid;gap:8px}
+.row{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 12px;border:1px solid;border-radius:8px;background:none;color:var(--fg);font:inherit;font-size:15px;text-align:left;cursor:pointer}
+.row.good{background:var(--good-bg);border-color:var(--good-line)}
+.row.bad{background:var(--bad-bg);border-color:var(--bad-line)}
+.row span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{flex-shrink:0;width:16px;height:16px;border-radius:50%;background:var(--c)}
+.good .dot{--c:#22c55e}
+.bad .dot{--c:#ef4444}
+details summary{min-height:24px;font-weight:700;cursor:pointer}
+details h4{margin:16px 0 6px}
+details ul{margin:0;padding-left:20px}
+details li{margin:0 0 6px}
+.src a{color:var(--accent);font-weight:600}
+.src p{margin:2px 0 12px;color:var(--muted);font-size:14px}
+.keys{margin:12px 0 0;color:var(--muted);font-size:12px;text-align:center}
+sup,sub{font-size:.7em;line-height:0}
+/* touch phones only: finger-sized set chips */
+@media (max-width:500px) and (pointer:coarse){.gname{min-height:44px}.set{min-width:44px;height:44px}.tools .btn{min-height:40px}}
+</style>
+</head>
+<body>
+<header><a href="./"><span class="mark">CAT</span>CAT Prep</a></header>
+<main></main>
+<footer>Formulas are standard; verbal questions are original practice items written for this app. More material under Sources.</footer>
+<script src="content.js"></script>
+<script src="nearmiss.js"></script>
+<script src="va.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const cut = (s, n = 70) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+const TOPICS = [...new Set(FORMULAS.map(f => f[0]))];
+const TYPES = Object.keys(VA_TYPES);
+
+// ---- every question becomes {tag, prompt, ask, passage?, title?, sentences?, options|tita, answer, why, html?, label}
+function formulaItem(f) {
+  const [topic, name, formula, note] = f;
+  const options = shuffle([formula, ...NEAR[name]]);  // three near-miss versions of the same formula, so you must know it exactly
+  return {tag: topic, prompt: name, ask: 'Pick the correct formula', options, answer: options.indexOf(formula), why: note, reveal: formula, html: true, label: name};
+}
+// options are shuffled every quiz so answer positions can't be memorised
+const mix = (opts, answer) => {
+  const o = shuffle(opts.map((text, i) => [text, i === answer]));
+  return {options: o.map(x => x[0]), answer: o.findIndex(x => x[1])};
+};
+const VA_ITEMS = {
+  pj: x => ({tag: VA_TYPES.pj.name, prompt: 'Arrange the sentences into a coherent paragraph', ask: 'Type the order of sentence numbers, e.g. 2413', sentences: x.s, tita: true, answer: x.answer, why: x.why, label: cut(x.s[0])}),
+  ps: x => ({tag: VA_TYPES.ps.name, passage: [x.p], prompt: 'Which option best summarises the paragraph?', ...mix(x.o, x.answer), why: x.why, label: cut(x.p)}),
+  oo: x => ({tag: VA_TYPES.oo.name, prompt: 'Which sentence does not fit with the others?', ask: 'Four sentences form a paragraph; pick the odd one out', sentences: x.s, options: x.s.map((_, i) => `Sentence ${i + 1}`), answer: x.answer - 1, why: x.why, label: cut(x.s[0])}),
+  sp: x => ({tag: VA_TYPES.sp.name, insert: x.sentence, passage: [x.p], blanks: true, prompt: 'Where does the sentence above fit best?', options: [1, 2, 3, 4].map(n => `Blank ${n}`), answer: x.answer - 1, why: x.why, label: cut(x.sentence)}),
+  rc: r => r.q.map(q => ({tag: VA_TYPES.rc.name, title: r.title, passage: r.p, prompt: q.q, ...mix(q.o, q.answer), why: q.why, label: cut(q.q)})),
+};
+// each topic/type is cut into numbered sets of 5 (one passage per RC set) so you can work through them in order
+const chunk = (a, n) => Array.from({length: Math.ceil(a.length / n)}, (_, i) => a.slice(i * n, i * n + n));
+const GROUPS = {
+  maths: TOPICS.map(t => ({key: t, name: t, sets: chunk(FORMULAS.filter(f => f[0] === t), 5), make: formulaItem})),
+  va: TYPES.map(t => ({key: t, name: VA_TYPES[t].name, sets: chunk(VA[t], t === 'rc' ? 1 : 5), make: VA_ITEMS[t]})),
+};
+const setKeys = g => g.sets.map((_, i) => `${g.key}:${i}`);
+const allKeys = section => GROUPS[section].flatMap(setKeys);
+const pool = (section, picks) => GROUPS[section].flatMap(g => g.sets.flatMap((s, i) => picks.has(`${g.key}:${i}`)
+  ? s.flatMap(g.make).map(x => ({...x, tag: `${x.tag} · Set ${i + 1}`})) : []));
+const isRight = (item, a) => item.tita ? String(a).replace(/\D/g, '') === item.answer : a === item.answer;
+const shown = (item, a) => item.tita ? esc(a) : item.html ? item.options[a] : esc(item.options[a]);
+
+// ---- state
+const setup = {section: 'maths', picks: {maths: new Set(allKeys('maths')), va: new Set(allKeys('va'))}, count: ''};
+let view = 'setup', quiz = [], answers = [], at = 0;
+
+function start(items) {
+  quiz = items; answers = []; at = 0;
+  show('question');
+}
+
+// ---- views
+function questionCard(item, a, reviewing) {
+  const done = a !== undefined;
+  const body = item.tita
+    ? `<form class="tita" data-act="submit"><input id="tita" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="e.g. 2413" aria-label="Your order" value="${done ? esc(a) : ''}"${done ? ' disabled' : ''}><button class="btn primary"${done ? ' disabled' : ''}>Check</button></form>`
+    : `<div class="options">${item.options.map((o, i) => `<button class="btn opt${done && i === item.answer ? ' right' : done && i === a ? ' wrong' : ''}" data-act="answer" data-i="${i}"${done ? ' disabled' : ''}>${item.html ? o : esc(o)}</button>`).join('')}</div>`;
+  const right = done && isRight(item, a);
+  const para = p => item.blanks ? esc(p).replace(/\[(\d)\]/g, '<b class="blank">$1</b>') : esc(p);
+  return `
+    ${item.insert ? `<blockquote class="insert">${esc(item.insert)}</blockquote>` : ''}
+    ${item.passage ? `<div class="passage">${item.title ? `<h3>${esc(item.title)}</h3>` : ''}${item.passage.map(p => `<p>${para(p)}</p>`).join('')}</div>` : ''}
+    ${item.sentences ? `<ol class="sentences">${item.sentences.map((s, i) => `<li><b>${i + 1}</b><span>${esc(s)}</span></li>`).join('')}</ol>` : ''}
+    <div class="prompt">${esc(item.prompt)}</div>
+    ${item.ask ? `<p class="ask">${esc(item.ask)}</p>` : ''}
+    ${body}
+    ${done ? `<div class="feedback ${right ? 'good' : 'bad'}">
+      <strong>${right ? 'Correct!' : item.html ? 'Not quite — the correct formula is:' : `Not quite — the answer is ${item.tita ? item.answer : esc(item.options[item.answer])}`}</strong>
+      ${item.html && !right ? `<p>${item.reveal}</p>` : ''}
+      ${item.why ? `<p>${item.html ? item.why : esc(item.why)}</p>` : ''}
+    </div>` : ''}`;
+}
+
+const views = {
+  setup() {
+    const maths = setup.section === 'maths', picks = setup.picks[setup.section];
+    const max = pool(setup.section, picks).length;
+    return `<h1>CAT Prep</h1>
+      <p class="sub">Short quizzes on quant formulas and verbal ability — one per coffee, or per agent run.</p>
+      <div class="card">
+        <span class="title">Section</span>
+        <div class="seg">
+          <button class="btn" data-act="section" data-v="maths" aria-pressed="${maths}">Maths formulas</button>
+          <button class="btn" data-act="section" data-v="va" aria-pressed="${!maths}">English VA</button>
+        </div>
+        <div class="tools"><span class="title">${maths ? 'Topics' : 'Question types'}</span><button class="btn" data-act="all">Select all</button><button class="btn" data-act="none">Deselect all</button></div>
+        <p class="hint">Numbered sets of 5${maths ? '' : ' (one passage per Reading Comprehension set)'}, so you can work through them in order.</p>
+        ${GROUPS[setup.section].map(g => { const keys = setKeys(g); return `<div class="grp">
+          <label class="gname"><input type="checkbox" data-type="${esc(g.key)}"${keys.length && keys.every(k => picks.has(k)) ? ' checked' : ''}>${esc(g.name)}<small>${g.sets.flat().flatMap(g.make).length}</small></label>
+          <div class="sets">${keys.map((k, i) => `<label class="set"><input type="checkbox" data-pick="${esc(k)}" aria-label="${esc(g.name)} set ${i + 1}"${picks.has(k) ? ' checked' : ''}>${i + 1}</label>`).join('')}</div>
+        </div>`; }).join('')}
+        <label class="title" for="count">Number of questions</label>
+        <input id="count" class="num" inputmode="numeric" placeholder="10" value="${setup.count}">
+        <p class="hint">${max ? `Max: ${max}` : 'Pick at least one set'}</p>
+        <button class="btn primary go" data-act="start"${max ? '' : ' disabled'}>Start quiz</button>
+        <button class="btn" data-act="quick">Quick 5 — mixed maths and verbal</button>
+      </div>
+      <details class="card">
+        <summary>How to approach each verbal question type</summary>
+        ${TYPES.map(t => `<h4>${VA_TYPES[t].name}</h4><ul>${VA_TYPES[t].tips.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}
+      </details>
+      <details class="card src">
+        <summary>Sources and more practice</summary>
+        ${[...new Set(SOURCES.map(s => s[0]))].map(g => `<h4>${esc(g)}</h4>${SOURCES.filter(s => s[0] === g).map(([, title, url, note]) =>
+          `<a href="${esc(url)}" target="_blank" rel="noreferrer">${esc(title)} ↗</a><p>${esc(note)}</p>`).join('')}`).join('')}
+      </details>`;
+  },
+  question() {
+    const item = quiz[at], a = answers[at], last = at === quiz.length - 1;
+    return `<div class="card">
+      <div class="qhead"><span>Question ${at + 1} of ${quiz.length}</span><span class="tag">${esc(item.tag)}</span></div>
+      ${questionCard(item, a)}
+      ${a !== undefined ? `<button class="btn primary" data-act="next">${last ? 'See results' : 'Next question'}</button>` : ''}
+      <p class="keys">${item.tita ? 'Enter to check, Enter again for next' : `Keys: 1–${item.options.length} to answer, Enter for next`}</p>
+    </div>`;
+  },
+  results() {
+    const score = quiz.filter((q, i) => isRight(q, answers[i])).length;
+    const missed = quiz.some((q, i) => !isRight(q, answers[i]));
+    return `<div class="card">
+      <span class="title" style="text-align:center">Quiz complete</span>
+      <div class="score">${score} / ${quiz.length}</div>
+      <div class="rows">${quiz.map((q, i) => {
+        const ok = isRight(q, answers[i]);
+        return `<button class="row ${ok ? 'good' : 'bad'}" data-act="review" data-i="${i}"><span class="dot" role="img" aria-label="${ok ? 'correct' : 'wrong'}"></span><span>Q${i + 1} · ${esc(q.label)}</span></button>`;
+      }).join('')}</div>
+      ${missed ? '<button class="btn primary go" data-act="retry">Retry the ones I missed</button>' : ''}
+      <button class="btn${missed ? '' : ' primary go'}" data-act="new">New quiz</button>
+    </div>`;
+  },
+  review() {
+    return `<div class="card">
+      <div class="qhead"><span>Review: question ${at + 1} of ${quiz.length}</span><span class="tag">${esc(quiz[at].tag)}</span></div>
+      ${questionCard(quiz[at], answers[at])}
+      <button class="btn primary" data-act="results">Back to results</button>
+      <p class="keys">Use ← / → to move between questions, Esc to go back</p>
+    </div>`;
+  },
+};
+
+function show(v) {
+  view = v;
+  $('main').innerHTML = views[v]();
+  if (v !== 'setup') scrollTo(0, 0);
+  if (v === 'question') $('#tita:not(:disabled)')?.focus({preventScroll: true});
+}
+
+// ---- events
+function answer(a) {
+  if (answers[at] !== undefined) return;
+  answers[at] = a;
+  show('question');
+}
+function next() {
+  at < quiz.length - 1 ? (at++, show('question')) : show('results');
+}
+$('main').addEventListener('change', e => {
+  const {pick, type} = e.target.dataset, s = setup.picks[setup.section], on = e.target.checked;
+  if (!pick && !type) return;
+  (pick ? [pick] : setKeys(GROUPS[setup.section].find(g => g.key === type))).forEach(k => on ? s.add(k) : s.delete(k));
+  show('setup');
+});
+$('main').addEventListener('input', e => {
+  if (e.target.id === 'count') e.target.value = setup.count = e.target.value.replace(/\D/g, '');
+});
+$('main').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#tita').value.replace(/\D/g, '');
+  if (v) answer(v);
+});
+$('main').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b || b.tagName === 'FORM') return;
+  const i = +b.dataset.i;
+  ({
+    section() { setup.section = b.dataset.v; show('setup'); },
+    all() { setup.picks[setup.section] = new Set(allKeys(setup.section)); show('setup'); },
+    none() { setup.picks[setup.section].clear(); show('setup'); },
+    start() {
+      const items = shuffle(pool(setup.section, setup.picks[setup.section]));
+      start(items.slice(0, Math.max(1, +setup.count || 10)));
+    },
+    quick() { start(shuffle([...shuffle(pool('maths', new Set(allKeys('maths')))).slice(0, 3), ...shuffle(pool('va', new Set(allKeys('va')))).slice(0, 2)])); },
+    answer() { answer(i); },
+    next,
+    review() { at = i; show('review'); },
+    results() { show('results'); },
+    retry() { start(shuffle(quiz.filter((q, k) => !isRight(q, answers[k])))); },
+    new() { show('setup'); },
+  })[b.dataset.act]?.();
+});
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (view === 'question') {
+    const item = quiz[at];
+    if (answers[at] === undefined && item.options && +e.key >= 1 && +e.key <= item.options.length) answer(+e.key - 1);
+    else if (answers[at] !== undefined && e.key === 'Enter') { e.preventDefault(); next(); }
+  } else if (view === 'review') {
+    if (e.key === 'ArrowLeft' && at > 0) { at--; show('review'); }
+    else if (e.key === 'ArrowRight' && at < quiz.length - 1) { at++; show('review'); }
+    else if (e.key === 'Escape') show('results');
+  }
+});
+
+show('setup');
+</script>
+</body>
+</html>
