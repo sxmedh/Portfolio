@@ -14,6 +14,10 @@
 body{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 header{display:flex;align-items:center;height:56px;padding:0 20px;border-bottom:1px solid var(--line)}
 header a{display:flex;align-items:center;gap:10px;color:inherit;font-weight:700;text-decoration:none}
+.back{display:flex;align-items:center;min-height:44px;margin:0 10px 0 -10px;padding:0 10px 0 4px;border:0;border-radius:8px;background:none;color:var(--accent);font:inherit;font-weight:600;cursor:pointer}
+.back[hidden]{display:none}
+.back svg{width:22px;height:22px}
+@media (hover:hover){.back:hover{background:var(--soft)}}
 .mark{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:800;letter-spacing:.02em}
 main{flex:1;width:100%;max-width:680px;margin:0 auto;padding:28px 16px 40px}
 footer{padding:14px 16px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:13px}
@@ -75,7 +79,7 @@ input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:var(--accent)}
 .feedback p{margin:4px 0 0}
 .feedback + .btn{margin-top:14px}
 .score{margin:6px 0 18px;font-size:30px;font-weight:800;text-align:center}
-.rows{display:grid;gap:8px}
+.rows{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 .row{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 12px;border:1px solid;border-radius:8px;background:none;color:var(--fg);font:inherit;font-size:15px;text-align:left;cursor:pointer}
 .row.good{background:var(--good-bg);border-color:var(--good-line)}
 .row.bad{background:var(--bad-bg);border-color:var(--bad-line)}
@@ -96,7 +100,7 @@ sup,sub{font-size:.7em;line-height:0}
 </style>
 </head>
 <body>
-<header><a href="./"><span class="mark">CAT</span>CAT Prep</a></header>
+<header><button id="back" class="back" hidden onclick="history.back()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Back</button><a href="./"><span class="mark">CAT</span>CAT Prep</a></header>
 <main></main>
 <footer>Formulas are standard; verbal questions are original practice items written for this app. More material under Sources.</footer>
 <script src="content.js"></script>
@@ -144,9 +148,10 @@ const shown = (item, a) => item.tita ? esc(a) : item.html ? item.options[a] : es
 // ---- state
 const setup = {section: 'maths', picks: {maths: new Set(allKeys('maths')), va: new Set(allKeys('va'))}, count: ''};
 let view = 'setup', quiz = [], answers = [], at = 0;
+let run = 0;  // id of the current quiz, so history entries from an older quiz (or from before a reload) fall back to setup
 
 function start(items) {
-  quiz = items; answers = []; at = 0;
+  quiz = items; answers = []; at = 0; run = Date.now();
   show('question');
 }
 
@@ -239,12 +244,27 @@ const views = {
   },
 };
 
+// each screen level is a history entry, so the phone's back swipe and the Back button step back a screen
+const DEPTH = {setup: 0, question: 1, results: 1, review: 2};
 function show(v) {
+  const d = DEPTH[v], cur = history.state?.d ?? 0;
+  if (d < cur) return history.go(d - cur);  // going up a level: popstate draws it
   view = v;
-  $('main').innerHTML = views[v]();
-  if (v !== 'setup') scrollTo(0, 0);
-  if (v === 'question') $('#tita:not(:disabled)')?.focus({preventScroll: true});
+  history[d > cur ? 'pushState' : 'replaceState']({d, v, at, run}, '');
+  draw();
 }
+function draw() {
+  $('main').innerHTML = views[view]();
+  $('#back').hidden = view === 'setup';
+  if (view !== 'setup') scrollTo(0, 0);
+  if (view === 'question') $('#tita:not(:disabled)')?.focus({preventScroll: true});
+}
+addEventListener('popstate', () => {
+  const s = history.state;
+  if (!s || s.d && s.run !== run) history.replaceState({d: 0, v: 'setup', at: 0, run}, '');
+  ({v: view, at} = history.state);
+  draw();
+});
 
 // ---- events
 function answer(a) {
@@ -303,6 +323,7 @@ addEventListener('keydown', e => {
   }
 });
 
+history.replaceState(null, '');  // a reload starts at setup, whatever screen it was on
 show('setup');
 </script>
 </body>

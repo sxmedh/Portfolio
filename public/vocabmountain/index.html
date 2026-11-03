@@ -13,6 +13,10 @@
 body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:#fff;color:var(--fg);font:15px/1.5 Ubuntu,system-ui,-apple-system,"Segoe UI",sans-serif}
 header{display:flex;align-items:center;gap:10px;height:56px;padding:0 24px;border-bottom:1px solid var(--line);font-weight:700}
 header svg{width:26px;height:26px}
+.back{display:flex;align-items:center;min-height:44px;margin-left:-12px;padding:0 10px 0 4px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;cursor:pointer}
+.back[hidden]{display:none}
+.back svg{width:22px;height:22px}
+.back:hover{background:var(--soft)}
 main{flex:1;width:100%;max-width:672px;margin:0 auto;padding:40px 16px}
 footer{padding:16px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:12px}
 footer a{color:inherit}
@@ -69,6 +73,7 @@ button.btn:hover{background:var(--soft)}
 </head>
 <body>
 <header>
+  <button id="back" class="back" hidden onclick="history.back()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Back</button>
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="2" y="5" width="3" height="15" rx=".6"/><rect x="6" y="3" width="3.5" height="17" rx=".6"/><rect x="10.5" y="5" width="3" height="15" rx=".6"/><rect x="15.5" y="4" width="3" height="16" rx=".6" transform="rotate(-14 17 12)"/></svg>
   Vocab Mountain
 </header>
@@ -82,6 +87,7 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.r
 const TYPES = ['Synonym Matching', 'Pick the Correct Definition', 'Pick the Correct Word for a Definition'];
 
 let WORDS = [], view = 'setup', quiz = [], answers = [], at = 0;
+let run = 0;  // id of the current quiz, so history entries from an older quiz (or from before a reload) fall back to setup
 const setup = {groups: new Set(), count: '', type: 0};
 
 // One question for word w: the prompt, the right answer, and 3 distractors taken from other random words.
@@ -104,7 +110,7 @@ function start() {
   const pool = WORDS.filter(w => setup.groups.has(w.group) && (setup.type || w.defs.some(x => x.syns.length)));
   const n = Math.min(Math.max(+setup.count || 10, 1), pool.length);
   quiz = shuffle(pool).slice(0, n).map(w => question(w, setup.type));
-  answers = [];
+  answers = []; run = Date.now();
   show('quiz');
 }
 
@@ -162,10 +168,25 @@ const views = {
   },
 };
 
+// each screen level is a history entry, so the phone's back swipe and the Back button step back a screen
+const DEPTH = {setup: 0, quiz: 1, results: 1, review: 2};
 function show(v) {
+  const d = DEPTH[v], cur = history.state?.d ?? 0;
+  if (d < cur) return history.go(d - cur);  // going up a level: popstate draws it
   view = v;
-  $('main').innerHTML = views[v]();
+  history[d > cur ? 'pushState' : 'replaceState']({d, v, at, run}, '');
+  draw();
 }
+function draw() {
+  $('main').innerHTML = views[view]();
+  $('#back').hidden = view === 'setup';
+}
+addEventListener('popstate', () => {
+  const s = history.state;
+  if (!s || s.d && s.run !== run) history.replaceState({d: 0, v: 'setup', at: 0, run}, '');
+  ({v: view, at} = history.state);
+  draw();
+});
 
 $('main').addEventListener('change', e => {
   const t = e.target;
@@ -202,6 +223,7 @@ addEventListener('keydown', e => {
 // [word, group, [[definition, synonyms, example], ...]]
 fetch('vocab.json').then(r => r.json()).then(rows => {
   WORDS = rows.map(([word, group, defs]) => ({word, group, defs: defs.map(([def, syns, example]) => ({def, syns, example}))}));
+  history.replaceState(null, '');  // a reload starts at setup, whatever screen it was on
   show('setup');
 }).catch(() => { $('main').innerHTML = '<p class="center hint">Could not load the word list.</p>'; });
 </script>
