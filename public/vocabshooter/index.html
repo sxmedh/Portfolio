@@ -74,7 +74,8 @@ h1 span{color:var(--accent)}
 .verdict{margin:0;font-weight:700}
 .verdict.good{color:var(--good)}
 .verdict.bad{color:var(--bad)}
-#card h2{margin:2px 0 4px;font:700 28px/1.2 var(--display)}
+#card h2{margin:2px 0 0;font:700 28px/1.2 var(--display)}
+.say{margin:0 0 6px;color:var(--muted);font-size:16px;letter-spacing:.03em}  /* how to say the word; capitals are the stressed syllable */
 .def{margin:8px 0 0;padding:9px 12px;border:1px solid transparent;border-radius:10px;background:rgba(255,255,255,.05)}
 .def.asked{border-color:rgba(255,159,67,.4);background:rgba(255,159,67,.14)}
 .def p{margin:0}
@@ -104,6 +105,7 @@ h1 span{color:var(--accent)}
   #word{font-size:22px}
   #card{max-width:460px;max-height:70vh;bottom:8px}
   #card h2{font-size:20px}
+  .say{font-size:14px}
   .def .ex{display:none}
 }
 </style>
@@ -572,9 +574,9 @@ function danger(dt) {
   }
 }
 function trigger(r) {
-  const t = clock.elapsedTime;
+  const t = performance.now();  // real time, not the frame clock: a slow frame must not swallow the next shot
   if (phase !== 'aim' || t < coolUntil) return;
-  coolUntil = t + .18;
+  coolUntil = t + 180;
   const hit = r.intersectObjects([...signs.filter(s => s.visible).map(s => s.userData.front), ...orbs, ...solidMeshes], false)[0], u = hit?.object.userData;
   if (u?.orb) { fire(hit.point); popOrb(hit.object); }  // orbs can be shot down
   else if (u?.i !== undefined) shoot(u.i, hit.point);
@@ -583,7 +585,7 @@ function trigger(r) {
 function shoot(i, point) {
   const q = quiz[at], ok = q.options[i] === q.answer, right = q.options.indexOf(q.answer), w = q.w.word;
   fire(point, ok ? 0x4ade80 : 0xff6b6b, 9);
-  phase = 'card'; clearOrbs();
+  phase = 'card'; cardAt = Infinity; clearOrbs();  // Infinity: next() stays shut until the card is actually up
   cross.classList.add('hit'); setTimeout(() => cross.classList.remove('hit'), 160);
   shatter(signs[i], point, ok);
   signs.forEach((s, k) => {
@@ -601,6 +603,7 @@ function showCard(q, ok) {
   cardAt = clock.elapsedTime;
   $('#card').innerHTML = `<p class="verdict ${ok ? 'good' : 'bad'}">${ok ? 'Nice shot!' : 'Missed. This word will come back.'}</p>
     <h2>${esc(q.w.word)}</h2>
+    <p class="say">${esc(q.w.say || '')}</p>
     ${q.w.defs.map(d => `<div class="def${d === q.d ? ' asked' : ''}"><p>${esc(d.def)}</p>
       ${d.syns.length ? `<p class="syn">${d.syns.map(esc).join(' · ')}</p>` : ''}
       ${d.example ? `<p class="ex">“${esc(d.example)}”</p>` : ''}</div>`).join('')}
@@ -702,7 +705,7 @@ canvas.addEventListener('pointerdown', e => {
   if (e.clientX < innerWidth * .4 && joy.id === null) {  // left side: a joystick appears under the thumb
     Object.assign(joy, {id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0});
     $('#joy').style.transform = `translate(${e.clientX}px,${e.clientY}px)`; $('#knob').style.transform = ''; $('#joy').hidden = false;
-  } else if (drag.id === null) Object.assign(drag, {id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now()});
+  } else if (drag.id === null) Object.assign(drag, {id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: e.timeStamp});
 });
 canvas.addEventListener('pointermove', e => {
   if (e.pointerType === 'mouse') { if (locked && !paused) look(e.movementX, e.movementY, LOOK); return; }
@@ -714,8 +717,8 @@ canvas.addEventListener('pointermove', e => {
 const release = e => {
   if (e.pointerId === joy.id) { joy.id = null; joy.x = joy.y = 0; $('#joy').hidden = true; }
   if (e.pointerId === drag.id) {
-    drag.id = null;  // a quick tap without dragging shoots whatever is under the finger
-    if (e.type === 'pointerup' && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 12 && performance.now() - drag.t < 300) phase === 'card' ? next() : trigger(aimAt(e.clientX, e.clientY));
+    drag.id = null;  // a quick tap without dragging shoots whatever is under the finger (event times, so a slow frame can't turn a tap into a hold)
+    if (e.type === 'pointerup' && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 12 && e.timeStamp - drag.t < 300) phase === 'card' ? next() : trigger(aimAt(e.clientX, e.clientY));
   }
 };
 canvas.addEventListener('pointerup', release);
@@ -795,8 +798,9 @@ renderer.setAnimationLoop(() => {
   renderer.render(scene, camera);
 });
 
-fetch('../vocabmountain/vocab.json').then(r => r.json()).then(rows => {
-  WORDS = rows.map(([word, group, defs]) => ({word, group, defs: defs.map(([def, syns, example]) => ({def, syns, example}))}));
+// pron.json: how to say each word, in plain letters with the stressed syllable in capitals. The game still runs if it fails to load.
+Promise.all([fetch('../vocabmountain/vocab.json').then(r => r.json()), fetch('pron.json').then(r => r.json()).catch(() => ({}))]).then(([rows, pron]) => {
+  WORDS = rows.map(([word, group, defs]) => ({word, group, say: pron[word], defs: defs.map(([def, syns, example]) => ({def, syns, example}))}));
   history.replaceState(null, '');  // a reload starts at the groups screen
   menu();
 }).catch(() => { $('#menu .sub').textContent = 'Could not load the word list.'; });
